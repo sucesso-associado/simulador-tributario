@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+<meta charset="UTF-8">
+<title>Simulador Tributário Febrafar</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+
+body{
+font-family:Segoe UI,Arial;
+background:#f3f5f9;
+margin:0;
+}
+
+.top-bar{
+height:8px;
+background:#00995d;
+width:100%;
+}
+
+.header{
+display:flex;
+justify-content:center;
+align-items:center;
+padding:25px 0;
+background:white;
+box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+
+.header img{
+height:90px;
+}
+
+.page{
+max-width:1200px;
+margin:auto;
+padding:40px 20px;
+}
+
+.container{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:30px;
+}
+
+.card{
+background:white;
+padding:25px;
+border-radius:12px;
+box-shadow:0 4px 16px rgba(0,0,0,0.08);
+}
+
+.subtitle{
+font-size:13px;
+font-weight:700;
+margin:14px 0 6px;
+}
+
+.toggle{
+display:flex;
+background:#eef1f6;
+border-radius:8px;
+padding:4px;
+gap:4px;
+}
+
+.toggle button{
+flex:1;
+border:none;
+padding:10px;
+border-radius:6px;
+cursor:pointer;
+background:transparent;
+font-weight:600;
+}
+
+.toggle button.active{
+background:#00995d;
+color:white;
+}
+
+.input{
+background:#eef1f6;
+border-radius:8px;
+padding:10px;
+}
+
+.input input,.input select{
+border:none;
+background:none;
+width:100%;
+font-size:14px;
+}
+
+.row{
+display:flex;
+justify-content:space-between;
+padding:4px 0;
+font-size:14px;
+}
+
+.section{
+margin-top:16px;
+font-weight:700;
+}
+
+.separator{
+border-top:2px solid #00995d;
+margin:12px 0;
+}
+
+.status{
+margin-top:20px;
+padding:12px;
+border-radius:30px;
+text-align:center;
+font-weight:600;
+background:#e8f7ee;
+color:#16a34a;
+}
+
+.status.red{
+background:#fdecea;
+color:#dc2626;
+}
+
+.hidden{
+display:none;
+}
+
+.export-btn{
+background:#00995d;
+color:white;
+border:none;
+padding:10px 16px;
+border-radius:6px;
+cursor:pointer;
+font-weight:600;
+}
+
+@media(max-width:900px){
+.container{
+grid-template-columns:1fr;
+}
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="top-bar"></div>
+
+<div class="header">
+<img src="https://febrafar.com.br/wp-content/webp-express/webp-images/uploads/2023/11/Logo_Febrafar_header-20231129-113221.png.webp">
+</div>
+
+<div class="page">
+
+<div class="container">
+
+<div class="card">
+
+<div class="subtitle">Interestadual</div>
+<div class="toggle" id="interestadual">
+<button class="active">Sim</button>
+<button>Não</button>
+</div>
+
+<div class="subtitle">Produto</div>
+<div class="toggle" id="produto">
+<button class="active">Medicamento</button>
+<button>Perfumaria</button>
+</div>
+
+<div id="medCampos">
+
+<div class="subtitle">Categoria</div>
+<div class="toggle" id="categoria">
+<button class="active">Genérico</button>
+<button>Marca</button>
+</div>
+
+<div class="subtitle">Lista</div>
+<div class="toggle" id="lista">
+<button class="active">Positiva</button>
+<button>Negativa</button>
+</div>
+
+</div>
+
+<div class="subtitle">Preço Fábrica</div>
+<div class="input">
+<input id="preco" value="80">
+</div>
+
+<div id="descontoCampos">
+
+<div class="subtitle">Desconto Compra (%)</div>
+<div class="input">
+<input id="descCompra" value="30">
+</div>
+
+<div class="subtitle">Desconto Venda (%)</div>
+<div class="input">
+<input id="descVenda" value="13">
+</div>
+
+</div>
+
+<div class="subtitle">Markup (%)</div>
+<div class="input">
+<input id="markup">
+</div>
+
+<div class="subtitle">ICMS Entrada (%)</div>
+<div class="input">
+<input id="icmsEntrada" readonly>
+</div>
+
+<div class="subtitle">ICMS Saída (%)</div>
+<div class="input">
+<select id="icmsSaida"></select>
+</div>
+
+</div>
+
+<div class="card" id="resultadoCard">
+
+<div style="display:flex;justify-content:space-between;align-items:center">
+
+<div class="section">RESULTADO</div>
+
+<button class="export-btn" onclick="exportarPDF()">Exportar PDF</button>
+
+</div>
+
+<div class="section">PRECIFICAÇÃO BRUTA</div>
+<div class="row"><span>Preço Fábrica</span><span id="pf"></span></div>
+<div class="row"><span>PMC</span><span id="pmc"></span></div>
+
+<div id="blocoLiquido">
+
+<div class="separator"></div>
+
+<div class="section">PRECIFICAÇÃO LÍQUIDA</div>
+<div class="row"><span>Preço Fábrica com Desconto</span><span id="pfDesc"></span></div>
+<div class="row"><span>PMC com Desconto</span><span id="pmcDesc"></span></div>
+
+</div>
+
+<div class="separator"></div>
+
+<div class="section">CÁLCULO DE ICMS</div>
+<div class="row"><span>Crédito ICMS (entrada)</span><span id="credEntrada"></span></div>
+<div class="row"><span>Crédito ICMS (saída)</span><span id="credSaida"></span></div>
+<div class="row"><span>ICMS Efetivo</span><span id="icms"></span></div>
+
+<div class="separator"></div>
+
+<div class="section">CMV</div>
+<div class="row"><span>CMV sem Imposto</span><span id="cmv1"></span></div>
+<div class="row"><span>ICMS Efetivo</span><span id="cmv2"></span></div>
+<div class="row"><span>CMV Final</span><span id="cmv3"></span></div>
+
+<div class="separator"></div>
+
+<div class="section">LUCRATIVIDADE</div>
+<div class="row"><span>Lucro Bruto</span><span id="lucro"></span></div>
+<div class="row"><span>Margem Bruta</span><span id="margem"></span></div>
+
+<div id="status" class="status"></div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+function moeda(v){
+return "R$ "+v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})
+}
+
+function pct(v){
+return (v*100).toFixed(2)+"%"
+}
+
+function getToggle(id){
+return document.querySelector("#"+id+" .active").innerText
+}
+
+function setICMSOptions(options){
+
+let select=document.getElementById("icmsSaida")
+
+let current=select.value
+
+select.innerHTML=""
+
+options.forEach(v=>{
+let opt=document.createElement("option")
+opt.value=v
+opt.text=v+"%"
+select.appendChild(opt)
+})
+
+if(options.includes(parseInt(current))){
+select.value=current
+}
+
+}
+
+function atualizarParametros(){
+
+let produto=getToggle("produto")
+let lista=getToggle("lista")
+let categoria=getToggle("categoria")
+let interestadual=getToggle("interestadual")
+
+let markup=document.getElementById("markup")
+let icmsEntrada=document.getElementById("icmsEntrada")
+
+icmsEntrada.value = interestadual==="Sim" ? 12 : 18
+
+if(produto==="Medicamento"){
+
+document.getElementById("medCampos").classList.remove("hidden")
+document.getElementById("descontoCampos").classList.remove("hidden")
+
+markup.readOnly=true
+markup.value = lista==="Positiva" ? 38.24 : 34.14
+
+setICMSOptions([categoria==="Genérico"?12:18])
+
+}else{
+
+document.getElementById("medCampos").classList.add("hidden")
+document.getElementById("descontoCampos").classList.add("hidden")
+
+markup.readOnly=false
+
+if(interestadual==="Sim"){
+setICMSOptions([12,18,25])
+}else{
+setICMSOptions([18,25])
+}
+
+}
+
+}
+
+function calcular(){
+
+let produto=getToggle("produto")
+
+let preco=parseFloat(document.getElementById("preco").value)
+
+let descCompra=parseFloat(document.getElementById("descCompra").value||0)/100
+let descVenda=parseFloat(document.getElementById("descVenda").value||0)/100
+let markup=parseFloat(document.getElementById("markup").value||0)/100
+let icmsEntrada=parseFloat(document.getElementById("icmsEntrada").value)/100
+let icmsSaida=parseFloat(document.getElementById("icmsSaida").value)/100
+
+let pmc=preco*(1+markup)
+
+let pfDesc=preco*(1-descCompra)
+
+let pmcDesc=pmc*(1-descVenda)
+
+let baseVenda = produto==="Perfumaria" ? pmc : pmcDesc
+let baseEntrada = produto==="Perfumaria" ? preco : pfDesc
+
+let credEntrada=baseEntrada*icmsEntrada
+let credSaida=baseVenda*icmsSaida
+
+let icms=credSaida-credEntrada
+
+let cmvSem
+let cmvIcms
+let cmvFinal
+
+if(produto==="Perfumaria"){
+
+document.getElementById("blocoLiquido").style.display="none"
+
+cmvSem=preco/pmc
+cmvIcms=icms/pmc
+cmvFinal=cmvSem+cmvIcms
+
+}else{
+
+document.getElementById("blocoLiquido").style.display="block"
+
+cmvSem=pfDesc/pmcDesc
+cmvIcms=icms/pmcDesc
+cmvFinal=(pfDesc+icms)/pmcDesc
+
+}
+
+let lucro=(baseVenda-baseEntrada-icms)
+let margem=lucro/baseVenda
+
+document.getElementById("pf").innerText=moeda(preco)
+document.getElementById("pmc").innerText=moeda(pmc)
+
+document.getElementById("pfDesc").innerText=moeda(pfDesc)
+document.getElementById("pmcDesc").innerText=moeda(pmcDesc)
+
+document.getElementById("credEntrada").innerText=moeda(credEntrada)
+document.getElementById("credSaida").innerText=moeda(credSaida)
+document.getElementById("icms").innerText=moeda(icms)
+
+document.getElementById("cmv1").innerText=pct(cmvSem)
+document.getElementById("cmv2").innerText=pct(cmvIcms)
+document.getElementById("cmv3").innerText=pct(cmvFinal)
+
+document.getElementById("lucro").innerText=moeda(lucro)
+document.getElementById("margem").innerText=pct(margem)
+
+let status=document.getElementById("status")
+
+if(lucro>0){
+status.innerText="✔ Operação Positiva"
+status.classList.remove("red")
+}else{
+status.innerText="✖ Operação com Prejuízo"
+status.classList.add("red")
+}
+
+}
+
+function exportarPDF(){
+
+const elemento = document.getElementById("resultadoCard")
+
+const opcoes = {
+
+margin:0.5,
+filename:"simulacao-febrafar.pdf",
+
+image:{type:"jpeg",quality:0.98},
+
+html2canvas:{scale:2},
+
+jsPDF:{
+unit:"in",
+format:"a4",
+orientation:"portrait"
+}
+
+}
+
+html2pdf().set(opcoes).from(elemento).save()
+
+}
+
+document.querySelectorAll(".toggle button").forEach(btn=>{
+btn.onclick=function(){
+let group=this.parentNode
+group.querySelectorAll("button").forEach(b=>b.classList.remove("active"))
+this.classList.add("active")
+atualizarParametros()
+calcular()
+}
+})
+
+document.querySelectorAll("input,select").forEach(el=>{
+el.addEventListener("input",calcular)
+})
+
+atualizarParametros()
+calcular()
+
+</script>
+
+</body>
+</html>
