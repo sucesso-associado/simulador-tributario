@@ -2,7 +2,6 @@
 <html lang="pt-br">
 
 <head>
-
 <meta charset="UTF-8">
 <title>Simulador Tributário Febrafar</title>
 
@@ -19,7 +18,6 @@ margin:0;
 .top-bar{
 height:8px;
 background:#00995d;
-width:100%;
 }
 
 .header{
@@ -52,6 +50,11 @@ background:white;
 padding:25px;
 border-radius:12px;
 box-shadow:0 4px 16px rgba(0,0,0,0.08);
+}
+
+.section{
+margin-top:16px;
+font-weight:700;
 }
 
 .subtitle{
@@ -89,7 +92,7 @@ border-radius:8px;
 padding:10px;
 }
 
-.input input,.input select{
+.input input{
 border:none;
 background:none;
 width:100%;
@@ -101,11 +104,6 @@ display:flex;
 justify-content:space-between;
 padding:4px 0;
 font-size:14px;
-}
-
-.section{
-margin-top:16px;
-font-weight:700;
 }
 
 .separator{
@@ -128,18 +126,44 @@ background:#fdecea;
 color:#dc2626;
 }
 
-.hidden{
-display:none;
-}
-
 .export-btn{
 background:#00995d;
 color:white;
 border:none;
-padding:10px 16px;
+padding:0 16px;
+height:38px;
 border-radius:6px;
 cursor:pointer;
 font-weight:600;
+display:flex;
+align-items:center;
+}
+
+.icon-btn{
+background:#00995d;
+border:none;
+width:38px;
+height:38px;
+border-radius:6px;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+margin-left:8px;
+color:white;
+}
+
+.icon-btn:hover{
+background:#003F7A;
+color:white;
+}
+.icon-btn svg{
+width:18px;
+height:18px;
+}
+
+.hidden{
+display:none;
 }
 
 @media(max-width:900px){
@@ -164,15 +188,19 @@ grid-template-columns:1fr;
 
 <div class="container">
 
+<!-- PARÂMETROS -->
+
 <div class="card">
 
-<div class="subtitle">Interestadual</div>
+<div class="section" style="margin-top:0">PARÂMETROS</div>
+
+<div class="subtitle">INTERESTADUAL / PRIMAVERA FISCAL</div>
 <div class="toggle" id="interestadual">
 <button class="active">Sim</button>
 <button>Não</button>
 </div>
 
-<div class="subtitle">Produto</div>
+<div class="subtitle">TIPO DE PRODUTO</div>
 <div class="toggle" id="produto">
 <button class="active">Medicamento</button>
 <button>Perfumaria</button>
@@ -180,13 +208,13 @@ grid-template-columns:1fr;
 
 <div id="medCampos">
 
-<div class="subtitle">Categoria</div>
+<div class="subtitle">CATEGORIAS</div>
 <div class="toggle" id="categoria">
 <button class="active">Genérico</button>
 <button>Marca</button>
 </div>
 
-<div class="subtitle">Lista</div>
+<div class="subtitle">LISTA</div>
 <div class="toggle" id="lista">
 <button class="active">Positiva</button>
 <button>Negativa</button>
@@ -194,41 +222,43 @@ grid-template-columns:1fr;
 
 </div>
 
-<div class="subtitle">Preço Fábrica</div>
+<div class="subtitle">PREÇO FABRICA</div>
 <div class="input">
 <input id="preco" value="80">
 </div>
 
 <div id="descontoCampos">
 
-<div class="subtitle">Desconto Compra (%)</div>
+<div class="subtitle">DESCONTO COMPRA (%)</div>
 <div class="input">
 <input id="descCompra" value="30">
 </div>
 
-<div class="subtitle">Desconto Venda (%)</div>
+<div class="subtitle">DESCONTO VENDA (%)</div>
 <div class="input">
 <input id="descVenda" value="13">
 </div>
 
 </div>
 
-<div class="subtitle">Markup (%)</div>
+<div class="subtitle">MARKUP (%)</div>
 <div class="input">
 <input id="markup">
 </div>
 
+<div id="icmsEntradaContainer">
 <div class="subtitle">ICMS Entrada (%)</div>
 <div class="input">
 <input id="icmsEntrada" readonly>
 </div>
+</div>
 
 <div class="subtitle">ICMS Saída (%)</div>
-<div class="input">
-<select id="icmsSaida"></select>
-</div>
+<div class="toggle" id="icmsSaida"></div>
 
 </div>
+
+<!-- RESULTADO -->
 
 <div class="card" id="resultadoCard">
 
@@ -236,45 +266,61 @@ grid-template-columns:1fr;
 
 <div class="section">RESULTADO</div>
 
-<button class="export-btn" onclick="exportarPDF()">Exportar PDF</button>
+<div style="display:flex;align-items:center">
+
+<button class="export-btn" onclick="exportarPDF()">
+Exportar PDF
+</button>
+
+<button class="icon-btn"
+title="Baixar planilha Primavera Fiscal"
+onclick="baixarPlanilha()">
+
+<svg viewBox="0 0 24 24" fill="currentColor">
+<path d="M12 16l4-5h-3V4h-2v7H8l4 5zm-7 2v2h14v-2H5z"/>
+</svg>
+
+</button>
+
+</div>
 
 </div>
 
 <div class="section">PRECIFICAÇÃO BRUTA</div>
-<div class="row"><span>Preço Fábrica</span><span id="pf"></span></div>
-<div class="row"><span>PMC</span><span id="pmc"></span></div>
+<div class="row"><span>Preço Fábrica</span><span id="pf">-</span></div>
+<div class="row"><span>PMC</span><span id="pmc">-</span></div>
 
 <div id="blocoLiquido">
 
 <div class="separator"></div>
 
 <div class="section">PRECIFICAÇÃO LÍQUIDA</div>
-<div class="row"><span>Preço Fábrica com Desconto</span><span id="pfDesc"></span></div>
-<div class="row"><span>PMC com Desconto</span><span id="pmcDesc"></span></div>
+<div class="row"><span>Preço Fábrica com Desconto</span><span id="pfDesc">-</span></div>
+<div class="row"><span>PMC com Desconto</span><span id="pmcDesc">-</span></div>
 
 </div>
 
 <div class="separator"></div>
 
 <div class="section">CÁLCULO DE ICMS</div>
-<div class="row"><span>Crédito ICMS (entrada)</span><span id="credEntrada"></span></div>
-<div class="row"><span>Crédito ICMS (saída)</span><span id="credSaida"></span></div>
-<div class="row"><span>ICMS Efetivo</span><span id="icms"></span></div>
+<div class="row"><span>Crédito ICMS (entrada)</span><span id="credEntrada">-</span></div>
+<div class="row"><span>Crédito ICMS (saída)</span><span id="credSaida">-</span></div>
+<div class="row"><span>ICMS Efetivo</span><span id="icms">-</span></div>
 
 <div class="separator"></div>
 
 <div class="section">CMV</div>
-<div class="row"><span>CMV sem Imposto</span><span id="cmv1"></span></div>
-<div class="row"><span>ICMS Efetivo</span><span id="cmv2"></span></div>
-<div class="row"><span>CMV Final</span><span id="cmv3"></span></div>
+<div class="row"><span>CMV sem Imposto</span><span id="cmv1">-</span></div>
+<div class="row"><span>ICMS Efetivo</span><span id="cmv2">-</span></div>
+<div class="row"><span>CMV Final</span><span id="cmv3">-</span></div>
 
 <div class="separator"></div>
 
 <div class="section">LUCRATIVIDADE</div>
-<div class="row"><span>Lucro Bruto</span><span id="lucro"></span></div>
-<div class="row"><span>Margem Bruta</span><span id="margem"></span></div>
+<div class="row"><span>Lucro Bruto</span><span id="lucro">-</span></div>
+<div class="row"><span>Margem Bruta</span><span id="margem">-</span></div>
 
-<div id="status" class="status"></div>
+<div id="status" class="status">-</div>
 
 </div>
 
@@ -296,24 +342,27 @@ function getToggle(id){
 return document.querySelector("#"+id+" .active").innerText
 }
 
-function setICMSOptions(options){
+function criarBotoesICMS(opcoes){
 
-let select=document.getElementById("icmsSaida")
+let container=document.getElementById("icmsSaida")
+container.innerHTML=""
 
-let current=select.value
+opcoes.forEach((valor,i)=>{
 
-select.innerHTML=""
+let btn=document.createElement("button")
+btn.innerText=valor+"%"
 
-options.forEach(v=>{
-let opt=document.createElement("option")
-opt.value=v
-opt.text=v+"%"
-select.appendChild(opt)
-})
+if(i===0) btn.classList.add("active")
 
-if(options.includes(parseInt(current))){
-select.value=current
+btn.onclick=function(){
+container.querySelectorAll("button").forEach(b=>b.classList.remove("active"))
+btn.classList.add("active")
+calcular()
 }
+
+container.appendChild(btn)
+
+})
 
 }
 
@@ -333,45 +382,68 @@ if(produto==="Medicamento"){
 
 document.getElementById("medCampos").classList.remove("hidden")
 document.getElementById("descontoCampos").classList.remove("hidden")
+document.getElementById("icmsEntradaContainer").classList.remove("hidden")
 
 markup.readOnly=true
 markup.value = lista==="Positiva" ? 38.24 : 34.14
 
-setICMSOptions([categoria==="Genérico"?12:18])
+criarBotoesICMS([categoria==="Genérico"?12:18])
 
 }else{
 
 document.getElementById("medCampos").classList.add("hidden")
 document.getElementById("descontoCampos").classList.add("hidden")
+document.getElementById("icmsEntradaContainer").classList.add("hidden")
 
 markup.readOnly=false
 
 if(interestadual==="Sim"){
-setICMSOptions([12,18,25])
+criarBotoesICMS([12,18,25])
 }else{
-setICMSOptions([18,25])
+criarBotoesICMS([18,25])
 }
 
 }
+
+calcular()
+
+}
+
+function limparResultados(){
+
+let ids=["pf","pmc","pfDesc","pmcDesc","credEntrada","credSaida","icms","cmv1","cmv2","cmv3","lucro","margem"]
+
+ids.forEach(id=>{
+document.getElementById(id).innerText="-"
+})
+
+document.getElementById("status").innerText="-"
 
 }
 
 function calcular(){
 
-let produto=getToggle("produto")
+let preco=document.getElementById("preco").value
+let markup=document.getElementById("markup").value
 
-let preco=parseFloat(document.getElementById("preco").value)
+if(preco==="" || markup===""){
+limparResultados()
+return
+}
+
+preco=parseFloat(preco)
+markup=parseFloat(markup)/100
+
+let produto=getToggle("produto")
 
 let descCompra=parseFloat(document.getElementById("descCompra").value||0)/100
 let descVenda=parseFloat(document.getElementById("descVenda").value||0)/100
-let markup=parseFloat(document.getElementById("markup").value||0)/100
-let icmsEntrada=parseFloat(document.getElementById("icmsEntrada").value)/100
-let icmsSaida=parseFloat(document.getElementById("icmsSaida").value)/100
+let icmsEntrada=parseFloat(document.getElementById("icmsEntrada").value||0)/100
+let icmsSaida=parseFloat(getToggle("icmsSaida"))/100
 
 let pmc=preco*(1+markup)
 
 let pfDesc=preco*(1-descCompra)
-
 let pmcDesc=pmc*(1-descVenda)
 
 let baseVenda = produto==="Perfumaria" ? pmc : pmcDesc
@@ -437,28 +509,12 @@ status.classList.add("red")
 }
 
 function exportarPDF(){
-
 const elemento = document.getElementById("resultadoCard")
-
-const opcoes = {
-
-margin:0.5,
-filename:"simulacao-febrafar.pdf",
-
-image:{type:"jpeg",quality:0.98},
-
-html2canvas:{scale:2},
-
-jsPDF:{
-unit:"in",
-format:"a4",
-orientation:"portrait"
+html2pdf().from(elemento).save("simulacao-febrafar.pdf")
 }
 
-}
-
-html2pdf().set(opcoes).from(elemento).save()
-
+function baixarPlanilha(){
+window.open("https://radar.farmarcas.com.br/simulador/exclusao-icms-st-perfumaria.xlsx")
 }
 
 document.querySelectorAll(".toggle button").forEach(btn=>{
@@ -467,16 +523,14 @@ let group=this.parentNode
 group.querySelectorAll("button").forEach(b=>b.classList.remove("active"))
 this.classList.add("active")
 atualizarParametros()
-calcular()
 }
 })
 
-document.querySelectorAll("input,select").forEach(el=>{
+document.querySelectorAll("input").forEach(el=>{
 el.addEventListener("input",calcular)
 })
 
 atualizarParametros()
-calcular()
 
 </script>
 
