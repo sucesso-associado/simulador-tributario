@@ -140,7 +140,7 @@ align-items:center;
 }
 
 .icon-btn{
-background:#00995d;
+background:#0057A8;
 border:none;
 width:38px;
 height:38px;
@@ -155,8 +155,8 @@ color:white;
 
 .icon-btn:hover{
 background:#003F7A;
-color:white;
 }
+
 .icon-btn svg{
 width:18px;
 height:18px;
@@ -164,12 +164,6 @@ height:18px;
 
 .hidden{
 display:none;
-}
-
-@media(max-width:900px){
-.container{
-grid-template-columns:1fr;
-}
 }
 
 </style>
@@ -188,7 +182,7 @@ grid-template-columns:1fr;
 
 <div class="container">
 
-<!-- PARÂMETROS -->
+<!-- PARAMETROS -->
 
 <div class="card">
 
@@ -249,7 +243,7 @@ grid-template-columns:1fr;
 <div id="icmsEntradaContainer">
 <div class="subtitle">ICMS Entrada (%)</div>
 <div class="input">
-<input id="icmsEntrada" readonly>
+<input id="icmsEntrada" value="12" readonly>
 </div>
 </div>
 
@@ -258,7 +252,7 @@ grid-template-columns:1fr;
 
 </div>
 
-<!-- RESULTADO -->
+<!-- RESULTADOS -->
 
 <div class="card" id="resultadoCard">
 
@@ -268,9 +262,7 @@ grid-template-columns:1fr;
 
 <div style="display:flex;align-items:center">
 
-<button class="export-btn" onclick="exportarPDF()">
-Exportar PDF
-</button>
+<button class="export-btn" onclick="exportarPDF()">Exportar PDF</button>
 
 <button class="icon-btn"
 title="Baixar planilha Primavera Fiscal"
@@ -287,8 +279,16 @@ onclick="baixarPlanilha()">
 </div>
 
 <div class="section">PRECIFICAÇÃO BRUTA</div>
-<div class="row"><span>Preço Fábrica</span><span id="pf">-</span></div>
-<div class="row"><span>PMC</span><span id="pmc">-</span></div>
+
+<div class="row">
+<span id="labelPF">Preço Fábrica</span>
+<span id="pf">-</span>
+</div>
+
+<div class="row">
+<span id="labelPMC">PMC</span>
+<span id="pmc">-</span>
+</div>
 
 <div id="blocoLiquido">
 
@@ -374,11 +374,16 @@ let categoria=getToggle("categoria")
 let interestadual=getToggle("interestadual")
 
 let markup=document.getElementById("markup")
-let icmsEntrada=document.getElementById("icmsEntrada")
 
-icmsEntrada.value = interestadual==="Sim" ? 12 : 18
+let labelPF=document.getElementById("labelPF")
+let labelPMC=document.getElementById("labelPMC")
+
+document.getElementById("icmsEntrada").value=12
 
 if(produto==="Medicamento"){
+
+labelPF.innerText="Preço Fábrica"
+labelPMC.innerText="PMC"
 
 document.getElementById("medCampos").classList.remove("hidden")
 document.getElementById("descontoCampos").classList.remove("hidden")
@@ -390,6 +395,9 @@ markup.value = lista==="Positiva" ? 38.24 : 34.14
 criarBotoesICMS([categoria==="Genérico"?12:18])
 
 }else{
+
+labelPF.innerText="Preço de Custo"
+labelPMC.innerText="Preço de Venda"
 
 document.getElementById("medCampos").classList.add("hidden")
 document.getElementById("descontoCampos").classList.add("hidden")
@@ -438,7 +446,7 @@ let produto=getToggle("produto")
 
 let descCompra=parseFloat(document.getElementById("descCompra").value||0)/100
 let descVenda=parseFloat(document.getElementById("descVenda").value||0)/100
-let icmsEntrada=parseFloat(document.getElementById("icmsEntrada").value||0)/100
+let icmsEntrada=0.12
 let icmsSaida=parseFloat(getToggle("icmsSaida"))/100
 
 let pmc=preco*(1+markup)
@@ -509,7 +517,7 @@ status.classList.add("red")
 }
 
 function exportarPDF(){
-const elemento = document.getElementById("resultadoCard")
+const elemento=document.getElementById("resultadoCard")
 html2pdf().from(elemento).save("simulacao-febrafar.pdf")
 }
 
