@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
 <meta charset="UTF-8">
-<title>Simulador Tributário Febrafar</title>
+<title>Calculadora Tributária Febrafar</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -21,18 +20,53 @@ height:8px;
 background:#00995d;
 }
 
+/* HEADER */
+
 .header{
-display:flex;
-justify-content:center;
-align-items:center;
-padding:25px 0;
 background:white;
 box-shadow:0 2px 6px rgba(0,0,0,0.05);
 }
 
-.header img{
-height:90px;
+.header-inner{
+max-width:1200px;
+margin:auto;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:20px;
 }
+
+.header-left{
+display:flex;
+flex-direction:column;
+}
+
+.header-left h1{
+margin:0;
+font-size:22px;
+color:#0057A8;
+font-weight:700;
+}
+
+.header-left p{
+margin:4px 0 0 0;
+font-size:13px;
+color:#666;
+}
+
+.title-divider{
+width:120px;
+height:3px;
+background:#00995d;
+margin-top:6px;
+border-radius:2px;
+}
+
+.header img{
+height:70px;
+}
+
+/* PAGE */
 
 .page{
 max-width:1200px;
@@ -45,6 +79,8 @@ display:grid;
 grid-template-columns:1fr 1fr;
 gap:30px;
 }
+
+/* CARDS */
 
 .card{
 background:white;
@@ -128,6 +164,8 @@ background:#fdecea;
 color:#dc2626;
 }
 
+/* BUTTONS */
+
 .export-btn{
 background:#00995d;
 color:white;
@@ -163,6 +201,20 @@ background:#003F7A;
 display:none;
 }
 
+@media(max-width:900px){
+
+.container{
+grid-template-columns:1fr;
+}
+
+.header-inner{
+flex-direction:column;
+gap:15px;
+text-align:center;
+}
+
+}
+
 </style>
 
 </head>
@@ -172,18 +224,30 @@ display:none;
 <div class="top-bar"></div>
 
 <div class="header">
+<div class="header-inner">
+
+<div class="header-left">
+<h1>Calculadora de Tributos</h1>
+<p>Cálculos válidos especificamente para o estado de São Paulo</p>
+<div class="title-divider"></div>
+</div>
+
 <img src="https://febrafar.com.br/wp-content/webp-express/webp-images/uploads/2023/11/Logo_Febrafar_header-20231129-113221.png.webp">
+
+</div>
 </div>
 
 <div class="page">
 
 <div class="container">
 
+<!-- PARAMETROS -->
+
 <div class="card">
 
 <div class="section">PARÂMETROS</div>
 
-<div class="subtitle">INTERESTADUAL</div>
+<div class="subtitle">INTERESTADUAL / PRIMAVERA FISCAL</div>
 <div class="toggle" id="interestadual">
 <button class="active">Sim</button>
 <button>Não</button>
@@ -247,6 +311,8 @@ display:none;
 
 </div>
 
+<!-- RESULTADOS -->
+
 <div class="card" id="resultadoCard">
 
 <div style="display:flex;justify-content:space-between;align-items:center">
@@ -297,7 +363,7 @@ onclick="baixarPlanilha()">
 
 <div class="section">CÁLCULO DE ICMS</div>
 <div class="row"><span>Crédito ICMS (entrada)</span><span id="credEntrada">-</span></div>
-<div class="row"><span>Crédito ICMS (saída)</span><span id="credSaida">-</span></div>
+<div class="row"><span>Débito ICMS (saída)</span><span id="credSaida">-</span></div>
 <div class="row"><span>ICMS Efetivo (guia)</span><span id="icms">-</span></div>
 
 <div class="separator"></div>
@@ -324,7 +390,7 @@ onclick="baixarPlanilha()">
 <script>
 
 function moeda(v){
-return "R$ "+v.toLocaleString("pt-BR",{minimumFractionDigits:2})
+return "R$ "+v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})
 }
 
 function pct(v){
@@ -348,12 +414,9 @@ b.innerText=v+"%"
 if(i===0) b.classList.add("active")
 
 b.onclick=function(){
-
 c.querySelectorAll("button").forEach(x=>x.classList.remove("active"))
 b.classList.add("active")
-
 calcular()
-
 }
 
 c.appendChild(b)
@@ -367,6 +430,7 @@ function atualizarParametros(){
 let produto=getToggle("produto")
 let interestadual=getToggle("interestadual")
 let lista=getToggle("lista")
+let categoria=getToggle("categoria")
 
 let markup=document.getElementById("markup")
 
@@ -390,7 +454,8 @@ document.getElementById("icmsEntradaContainer").classList.remove("hidden")
 markup.readOnly=true
 markup.value=lista==="Positiva"?38.24:34.14
 
-criarBotoesICMS([12,18])
+let icmsMed = categoria==="Genérico" ? 12 : 18
+criarBotoesICMS([icmsMed])
 
 }else{
 
@@ -402,6 +467,7 @@ document.getElementById("medCampos").classList.add("hidden")
 document.getElementById("descontoCampos").classList.add("hidden")
 
 markup.readOnly=false
+markup.value=""
 
 if(interestadual==="Sim"){
 
