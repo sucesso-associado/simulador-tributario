@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -53,14 +54,15 @@ box-shadow:0 4px 16px rgba(0,0,0,0.08);
 }
 
 .section{
-margin-top:16px;
 font-weight:700;
+margin-bottom:10px;
 }
 
 .subtitle{
 font-size:13px;
 font-weight:700;
-margin:14px 0 6px;
+margin-top:15px;
+margin-bottom:6px;
 }
 
 .toggle{
@@ -157,11 +159,6 @@ color:white;
 background:#003F7A;
 }
 
-.icon-btn svg{
-width:18px;
-height:18px;
-}
-
 .hidden{
 display:none;
 }
@@ -182,13 +179,11 @@ display:none;
 
 <div class="container">
 
-<!-- PARAMETROS -->
-
 <div class="card">
 
-<div class="section" style="margin-top:0">PARÂMETROS</div>
+<div class="section">PARÂMETROS</div>
 
-<div class="subtitle">INTERESTADUAL / PRIMAVERA FISCAL</div>
+<div class="subtitle">INTERESTADUAL</div>
 <div class="toggle" id="interestadual">
 <button class="active">Sim</button>
 <button>Não</button>
@@ -202,7 +197,7 @@ display:none;
 
 <div id="medCampos">
 
-<div class="subtitle">CATEGORIAS</div>
+<div class="subtitle">CATEGORIA</div>
 <div class="toggle" id="categoria">
 <button class="active">Genérico</button>
 <button>Marca</button>
@@ -216,21 +211,21 @@ display:none;
 
 </div>
 
-<div class="subtitle">PREÇO FABRICA</div>
+<div class="subtitle" id="labelPrecoParametro">PREÇO FABRICA</div>
 <div class="input">
-<input id="preco" value="80">
+<input id="preco">
 </div>
 
 <div id="descontoCampos">
 
 <div class="subtitle">DESCONTO COMPRA (%)</div>
 <div class="input">
-<input id="descCompra" value="30">
+<input id="descCompra">
 </div>
 
 <div class="subtitle">DESCONTO VENDA (%)</div>
 <div class="input">
-<input id="descVenda" value="13">
+<input id="descVenda">
 </div>
 
 </div>
@@ -241,18 +236,16 @@ display:none;
 </div>
 
 <div id="icmsEntradaContainer">
-<div class="subtitle">ICMS Entrada (%)</div>
+<div class="subtitle">Alíquota ICMS Entrada (%)</div>
 <div class="input">
 <input id="icmsEntrada" value="12" readonly>
 </div>
 </div>
 
-<div class="subtitle">ICMS Saída (%)</div>
+<div class="subtitle" id="labelIcmsSaida">Alíquota ICMS Saída (%)</div>
 <div class="toggle" id="icmsSaida"></div>
 
 </div>
-
-<!-- RESULTADOS -->
 
 <div class="card" id="resultadoCard">
 
@@ -305,7 +298,7 @@ onclick="baixarPlanilha()">
 <div class="section">CÁLCULO DE ICMS</div>
 <div class="row"><span>Crédito ICMS (entrada)</span><span id="credEntrada">-</span></div>
 <div class="row"><span>Crédito ICMS (saída)</span><span id="credSaida">-</span></div>
-<div class="row"><span>ICMS Efetivo</span><span id="icms">-</span></div>
+<div class="row"><span>ICMS Efetivo (guia)</span><span id="icms">-</span></div>
 
 <div class="separator"></div>
 
@@ -331,7 +324,7 @@ onclick="baixarPlanilha()">
 <script>
 
 function moeda(v){
-return "R$ "+v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})
+return "R$ "+v.toLocaleString("pt-BR",{minimumFractionDigits:2})
 }
 
 function pct(v){
@@ -342,25 +335,28 @@ function getToggle(id){
 return document.querySelector("#"+id+" .active").innerText
 }
 
-function criarBotoesICMS(opcoes){
+function criarBotoesICMS(lista){
 
-let container=document.getElementById("icmsSaida")
-container.innerHTML=""
+let c=document.getElementById("icmsSaida")
+c.innerHTML=""
 
-opcoes.forEach((valor,i)=>{
+lista.forEach((v,i)=>{
 
-let btn=document.createElement("button")
-btn.innerText=valor+"%"
+let b=document.createElement("button")
+b.innerText=v+"%"
 
-if(i===0) btn.classList.add("active")
+if(i===0) b.classList.add("active")
 
-btn.onclick=function(){
-container.querySelectorAll("button").forEach(b=>b.classList.remove("active"))
-btn.classList.add("active")
+b.onclick=function(){
+
+c.querySelectorAll("button").forEach(x=>x.classList.remove("active"))
+b.classList.add("active")
+
 calcular()
+
 }
 
-container.appendChild(btn)
+c.appendChild(b)
 
 })
 
@@ -369,14 +365,15 @@ container.appendChild(btn)
 function atualizarParametros(){
 
 let produto=getToggle("produto")
-let lista=getToggle("lista")
-let categoria=getToggle("categoria")
 let interestadual=getToggle("interestadual")
+let lista=getToggle("lista")
 
 let markup=document.getElementById("markup")
 
 let labelPF=document.getElementById("labelPF")
 let labelPMC=document.getElementById("labelPMC")
+let labelPrecoParametro=document.getElementById("labelPrecoParametro")
+let labelIcmsSaida=document.getElementById("labelIcmsSaida")
 
 document.getElementById("icmsEntrada").value=12
 
@@ -384,31 +381,42 @@ if(produto==="Medicamento"){
 
 labelPF.innerText="Preço Fábrica"
 labelPMC.innerText="PMC"
+labelPrecoParametro.innerText="PREÇO FABRICA"
 
 document.getElementById("medCampos").classList.remove("hidden")
 document.getElementById("descontoCampos").classList.remove("hidden")
 document.getElementById("icmsEntradaContainer").classList.remove("hidden")
 
 markup.readOnly=true
-markup.value = lista==="Positiva" ? 38.24 : 34.14
+markup.value=lista==="Positiva"?38.24:34.14
 
-criarBotoesICMS([categoria==="Genérico"?12:18])
+criarBotoesICMS([12,18])
 
 }else{
 
 labelPF.innerText="Preço de Custo"
 labelPMC.innerText="Preço de Venda"
+labelPrecoParametro.innerText="PREÇO DE CUSTO"
 
 document.getElementById("medCampos").classList.add("hidden")
 document.getElementById("descontoCampos").classList.add("hidden")
-document.getElementById("icmsEntradaContainer").classList.add("hidden")
 
 markup.readOnly=false
 
 if(interestadual==="Sim"){
+
+labelIcmsSaida.innerText="Alíquota ICMS Saída (%)"
+document.getElementById("icmsEntradaContainer").classList.remove("hidden")
+
 criarBotoesICMS([12,18,25])
+
 }else{
+
+labelIcmsSaida.innerText="Alíquota ICMS (%)"
+document.getElementById("icmsEntradaContainer").classList.add("hidden")
+
 criarBotoesICMS([18,25])
+
 }
 
 }
@@ -417,37 +425,30 @@ calcular()
 
 }
 
-function limparResultados(){
-
-let ids=["pf","pmc","pfDesc","pmcDesc","credEntrada","credSaida","icms","cmv1","cmv2","cmv3","lucro","margem"]
-
-ids.forEach(id=>{
-document.getElementById(id).innerText="-"
-})
-
-document.getElementById("status").innerText="-"
-
-}
-
 function calcular(){
 
-let preco=document.getElementById("preco").value
-let markup=document.getElementById("markup").value
+let preco=parseFloat(document.getElementById("preco").value)
+let markup=parseFloat(document.getElementById("markup").value)
 
-if(preco==="" || markup===""){
-limparResultados()
-return
-}
+if(isNaN(preco)||isNaN(markup)) return
 
-preco=parseFloat(preco)
-markup=parseFloat(markup)/100
+markup/=100
 
 let produto=getToggle("produto")
+let interestadual=getToggle("interestadual")
 
 let descCompra=parseFloat(document.getElementById("descCompra").value||0)/100
 let descVenda=parseFloat(document.getElementById("descVenda").value||0)/100
-let icmsEntrada=0.12
+
 let icmsSaida=parseFloat(getToggle("icmsSaida"))/100
+
+let icmsEntrada
+
+if(produto==="Perfumaria" && interestadual==="Não"){
+icmsEntrada=icmsSaida
+}else{
+icmsEntrada=parseFloat(document.getElementById("icmsEntrada").value)/100
+}
 
 let pmc=preco*(1+markup)
 
@@ -484,7 +485,7 @@ cmvFinal=(pfDesc+icms)/pmcDesc
 
 }
 
-let lucro=(baseVenda-baseEntrada-icms)
+let lucro=baseVenda-baseEntrada-icms
 let margem=lucro/baseVenda
 
 document.getElementById("pf").innerText=moeda(preco)
@@ -517,8 +518,7 @@ status.classList.add("red")
 }
 
 function exportarPDF(){
-const elemento=document.getElementById("resultadoCard")
-html2pdf().from(elemento).save("simulacao-febrafar.pdf")
+html2pdf().from(document.getElementById("resultadoCard")).save("simulacao-febrafar.pdf")
 }
 
 function baixarPlanilha(){
@@ -527,15 +527,15 @@ window.open("https://radar.farmarcas.com.br/simulador/exclusao-icms-st-perfumari
 
 document.querySelectorAll(".toggle button").forEach(btn=>{
 btn.onclick=function(){
-let group=this.parentNode
-group.querySelectorAll("button").forEach(b=>b.classList.remove("active"))
+let g=this.parentNode
+g.querySelectorAll("button").forEach(b=>b.classList.remove("active"))
 this.classList.add("active")
 atualizarParametros()
 }
 })
 
-document.querySelectorAll("input").forEach(el=>{
-el.addEventListener("input",calcular)
+document.querySelectorAll("input").forEach(i=>{
+i.addEventListener("input",calcular)
 })
 
 atualizarParametros()
