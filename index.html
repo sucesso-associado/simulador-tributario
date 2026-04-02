@@ -20,8 +20,6 @@ height:8px;
 background:#00995d;
 }
 
-/* HEADER */
-
 .header{
 background:white;
 box-shadow:0 2px 6px rgba(0,0,0,0.05);
@@ -36,16 +34,10 @@ align-items:center;
 padding:20px;
 }
 
-.header-left{
-display:flex;
-flex-direction:column;
-}
-
 .header-left h1{
 margin:0;
-font-size:22px;
+font-size:20px;
 color:#0057A8;
-font-weight:700;
 }
 
 .header-left p{
@@ -66,8 +58,6 @@ border-radius:2px;
 height:70px;
 }
 
-/* PAGE */
-
 .page{
 max-width:1200px;
 margin:auto;
@@ -79,8 +69,6 @@ display:grid;
 grid-template-columns:1fr 1fr;
 gap:30px;
 }
-
-/* CARDS */
 
 .card{
 background:white;
@@ -164,8 +152,6 @@ background:#fdecea;
 color:#dc2626;
 }
 
-/* BUTTONS */
-
 .export-btn{
 background:#00995d;
 color:white;
@@ -199,20 +185,6 @@ background:#003F7A;
 
 .hidden{
 display:none;
-}
-
-@media(max-width:900px){
-
-.container{
-grid-template-columns:1fr;
-}
-
-.header-inner{
-flex-direction:column;
-gap:15px;
-text-align:center;
-}
-
 }
 
 </style>
@@ -300,13 +272,13 @@ text-align:center;
 </div>
 
 <div id="icmsEntradaContainer">
-<div class="subtitle">Alíquota ICMS Entrada (%)</div>
+<div class="subtitle">ALÍQUOTA ICMS Entrada (%)</div>
 <div class="input">
 <input id="icmsEntrada" value="12" readonly>
 </div>
 </div>
 
-<div class="subtitle" id="labelIcmsSaida">Alíquota ICMS Saída (%)</div>
+<div class="subtitle" id="labelIcmsSaida">ALÍQUOTA ICMS Saída (%)</div>
 <div class="toggle" id="icmsSaida"></div>
 
 </div>
@@ -322,16 +294,7 @@ text-align:center;
 <div style="display:flex;align-items:center">
 
 <button class="export-btn" onclick="exportarPDF()">Exportar PDF</button>
-
-<button class="icon-btn"
-title="Baixar planilha Primavera Fiscal"
-onclick="baixarPlanilha()">
-
-<svg viewBox="0 0 24 24" fill="currentColor">
-<path d="M12 16l4-5h-3V4h-2v7H8l4 5zm-7 2v2h14v-2H5z"/>
-</svg>
-
-</button>
+<button class="icon-btn" onclick="baixarPlanilha()">⬇</button>
 
 </div>
 
@@ -439,28 +402,20 @@ let labelPMC=document.getElementById("labelPMC")
 let labelPrecoParametro=document.getElementById("labelPrecoParametro")
 let labelIcmsSaida=document.getElementById("labelIcmsSaida")
 
-let icmsEntradaCampo = document.getElementById("icmsEntrada")
-
-if(produto==="Medicamento" && interestadual==="Não"){
-icmsEntradaCampo.value = 18
-}else{
-icmsEntradaCampo.value = 12
-}
-
 if(produto==="Medicamento"){
 
 labelPF.innerText="Preço Fábrica"
 labelPMC.innerText="PMC"
-labelPrecoParametro.innerText="PREÇO FABRICA"
+labelPrecoParametro.innerText="PREÇO FÁBRICA"
 
 document.getElementById("medCampos").classList.remove("hidden")
 document.getElementById("descontoCampos").classList.remove("hidden")
-document.getElementById("icmsEntradaContainer").classList.remove("hidden")
+document.getElementById("blocoLiquido").style.display="block"
 
 markup.readOnly=true
 markup.value=lista==="Positiva"?38.24:34.14
 
-let icmsMed = categoria==="Genérico" ? 12 : 18
+let icmsMed=categoria==="Genérico"?12:18
 criarBotoesICMS([icmsMed])
 
 }else{
@@ -471,25 +426,28 @@ labelPrecoParametro.innerText="PREÇO DE CUSTO"
 
 document.getElementById("medCampos").classList.add("hidden")
 document.getElementById("descontoCampos").classList.add("hidden")
+document.getElementById("blocoLiquido").style.display="none"
 
 markup.readOnly=false
 markup.value=""
 
 if(interestadual==="Sim"){
-
-labelIcmsSaida.innerText="Alíquota ICMS Saída (%)"
-document.getElementById("icmsEntradaContainer").classList.remove("hidden")
-
 criarBotoesICMS([12,18,25])
+}else{
+criarBotoesICMS([18,25])
+}
+
+}
+
+if(interestadual==="Não"){
+
+document.getElementById("icmsEntradaContainer").classList.add("hidden")
+labelIcmsSaida.innerText="ALÍQUOTA ICMS"
 
 }else{
 
-labelIcmsSaida.innerText="Alíquota ICMS (%)"
-document.getElementById("icmsEntradaContainer").classList.add("hidden")
-
-criarBotoesICMS([18,25])
-
-}
+document.getElementById("icmsEntradaContainer").classList.remove("hidden")
+labelIcmsSaida.innerText="ALÍQUOTA ICMS Saída (%)"
 
 }
 
@@ -516,7 +474,7 @@ let icmsSaida=parseFloat(getToggle("icmsSaida"))/100
 
 let icmsEntrada
 
-if(produto==="Perfumaria" && interestadual==="Não"){
+if(interestadual==="Não"){
 icmsEntrada=icmsSaida
 }else{
 icmsEntrada=parseFloat(document.getElementById("icmsEntrada").value)/100
@@ -527,8 +485,8 @@ let pmc=preco*(1+markup)
 let pfDesc=preco*(1-descCompra)
 let pmcDesc=pmc*(1-descVenda)
 
-let baseVenda = produto==="Perfumaria" ? pmc : pmcDesc
-let baseEntrada = produto==="Perfumaria" ? preco : pfDesc
+let baseVenda=produto==="Perfumaria"?pmc:pmcDesc
+let baseEntrada=produto==="Perfumaria"?preco:pfDesc
 
 let credEntrada=baseEntrada*icmsEntrada
 let credSaida=baseVenda*icmsSaida
@@ -541,15 +499,11 @@ let cmvFinal
 
 if(produto==="Perfumaria"){
 
-document.getElementById("blocoLiquido").style.display="none"
-
 cmvSem=preco/pmc
 cmvIcms=icms/pmc
 cmvFinal=cmvSem+cmvIcms
 
 }else{
-
-document.getElementById("blocoLiquido").style.display="block"
 
 cmvSem=pfDesc/pmcDesc
 cmvIcms=icms/pmcDesc
